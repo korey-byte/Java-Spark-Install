@@ -1,154 +1,125 @@
-# pro-analytics-apache-starter
+# Apache Spark
 
-This project provides an isolated development environment for Apache tools like Kafka and PySpark using local JDK and virtual environments.  
-Works across macOS, Linux, and Windows (via WSL).  
+Spark is a unified analytics engine for large-scale data processing. It provides
+high-level APIs in Scala, Java, Python, and R, and an optimized engine that
+supports general computation graphs for data analysis. It also supports a
+rich set of higher-level tools including Spark SQL for SQL and DataFrames,
+pandas API on Spark for pandas workloads, MLlib for machine learning, GraphX for graph processing,
+and Structured Streaming for stream processing.
 
----
+<https://spark.apache.org/>
 
-## Getting Started
+[![GitHub Actions Build](https://github.com/apache/spark/actions/workflows/build_main.yml/badge.svg)](https://github.com/apache/spark/actions/workflows/build_main.yml)
+[![AppVeyor Build](https://img.shields.io/appveyor/ci/ApacheSoftwareFoundation/spark/master.svg?style=plastic&logo=appveyor)](https://ci.appveyor.com/project/ApacheSoftwareFoundation/spark)
+[![PySpark Coverage](https://codecov.io/gh/apache/spark/branch/master/graph/badge.svg)](https://codecov.io/gh/apache/spark)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/pyspark?period=month&units=international_system&left_color=black&right_color=orange&left_text=PyPI%20downloads)](https://pypi.org/project/pyspark/)
 
-### Just Windows Users: FIRST Set up WSL
 
-Install Windows Subsystem for Linux (WSL) by following the [instructions](01-setup/windows-users-install-wsl.md).
+## Online Documentation
 
-Open WSL by opening a PowerShell terminal and running wsl.
+You can find the latest Spark documentation, including a programming
+guide, on the [project web page](https://spark.apache.org/documentation.html).
+This README file only contains basic setup instructions.
 
-```powershell
-wsl
+## Building Spark
+
+Spark is built using [Apache Maven](https://maven.apache.org/).
+To build Spark and its example programs, run:
+
+```bash
+./build/mvn -DskipTests clean package
 ```
 
-Important: All remaining commands must be run from within the WSL environment. 
-We will use the same ones the Mac/Linux users do when we are working in WSL. 
+(You do not need to do this if you downloaded a pre-built package.)
 
-### All Platforms: Change to Home Directory
+More detailed documentation is available from the project site, at
+["Building Spark"](https://spark.apache.org/docs/latest/building-spark.html).
 
-Change to your home directory.
-Run these and all following commands in your shell ($ prompt) terminal.
+For general development tips, including info on developing Spark using an IDE, see ["Useful Developer Tools"](https://spark.apache.org/developer-tools.html).
 
-```shell
-cd ~/
+## Interactive Scala Shell
+
+The easiest way to start using Spark is through the Scala shell:
+
+```bash
+./bin/spark-shell
 ```
 
-### All Platforms: Clone Your Repository Into Your Home Directory
+Try the following command, which should return 1,000,000,000:
 
-1. Copy the template repo into your GitHub account. You can change the name as desired.
-2. Open a terminal in your "Projects" folder or where ever you keep your coding projects.
-3. Avoid using "Documents" or any folder that syncs automatically to OneDrive or other cloud services.
-4. Clone this repository into that folder - Windows users - clone into your default WSL directory.
-
-In the command below, if you changed the repository name, use that name instead.  
-
-For example - clone with something like this - but use your GitHub account name and repo name:
-
-```shell
-git clone https://github.com/denisecase/pro-analytics-apache-starter
+```scala
+scala> spark.range(1000 * 1000 * 1000).count()
 ```
 
-Then cd into your new folder (if you changed the name, use that):
+## Interactive Python Shell
 
-```shell
-cd pro-analytics-apache-starter
+Alternatively, if you prefer Python, you can use the Python shell:
+
+```bash
+./bin/pyspark
 ```
 
-### All Platforms: Adjust Requirements (Packages Needed)
+And run the following command, which should also return 1,000,000,000:
 
-Review requirements.txt and comment / uncomment the specific packages needed for your project.  
-
----
-
-## Create Virtual Environment
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
+```python
+>>> spark.range(1000 * 1000 * 1000).count()
 ```
 
-Important Reminder: Always run `source .venv/bin/activate` before working on the project.
+## Example Programs
 
-## Install Requirements
+Spark also comes with several sample programs in the `examples` directory.
+To run one of them, use `./bin/run-example <class> [params]`. For example:
 
-```shell
-python3 -m pip install --upgrade pip setuptools wheel
-python3 -m pip install --upgrade -r requirements.txt
-
+```bash
+./bin/run-example SparkPi
 ```
 
-## Grant Yourself Execute Permissions on the Script folders
+will run the Pi example locally.
 
-```shell
-chmod +x ./01-setup/*.sh
-chmod +x ./02-scripts/*.sh
-chmod +x ./02-scripts/*.py
+You can set the MASTER environment variable when running examples to submit
+examples to a cluster. This can be a mesos:// or spark:// URL,
+"yarn" to run on YARN, and "local" to run
+locally with one thread, or "local[N]" to run locally with N threads. You
+can also use an abbreviated class name if the class is in the `examples`
+package. For instance:
+
+```bash
+MASTER=spark://host:7077 ./bin/run-example SparkPi
 ```
 
-## Install JDK
+Many of the example programs print usage help if no params are given.
 
-Verify compatible versions.
-See instructions in the file.
-Then, install the necessary OpenJDK locally.
+## Running Tests
 
-```shell
-./01-setup/download-jdk.sh
+Testing first requires [building Spark](#building-spark). Once Spark is built, tests
+can be run using:
+
+```bash
+./dev/run-tests
 ```
 
-## Install Apache Tools (As Needed)
+Please see the guidance on how to
+[run tests for a module, or individual tests](https://spark.apache.org/developer-tools.html#individual-tests).
 
-Use the commands below to install only the tools your project requires:
+There is also a Kubernetes integration test, see resource-managers/kubernetes/integration-tests/README.md
 
-```shell
-./01-setup/install-kafka.sh
-./01-setup/install-pyspark.sh
-```
+## A Note About Hadoop Versions
 
----
+Spark uses the Hadoop core library to talk to HDFS and other Hadoop-supported
+storage systems. Because the protocols have changed in different versions of
+Hadoop, you must build Spark against the same version that your cluster runs.
 
-## Example: Using Apache Kafka (e.g., for Streaming Data)
+Please refer to the build documentation at
+["Specifying the Hadoop Version and Enabling YARN"](https://spark.apache.org/docs/latest/building-spark.html#specifying-the-hadoop-version-and-enabling-yarn)
+for detailed guidance on building for a particular distribution of Hadoop, including
+building for particular Hive and Hive Thriftserver distributions.
 
-Start the Kafka service (keep this terminal running)
+## Configuration
 
-```shell
-./02-scripts/run-kafka.sh
-```
+Please refer to the [Configuration Guide](https://spark.apache.org/docs/latest/configuration.html)
+in the online documentation for an overview on how to configure Spark.
 
-In a second terminal, create a Kafka topic
+## Contributing
 
-```shell
-./kafka/bin/kafka-topics.sh --create --topic test-topic --bootstrap-server localhost:9092
-```
-
-In that second terminal, list Kafka topics
-
-```shell
-./kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
-```
-
-In that second terminal, stop the Kafka service when done working with Kafka. Use whichever works.
-
-```shell
-./kafka/bin/kafka-server-stop.sh
-
-pkill -f kafka
-```
-
-
-## Example: Using PySpark (e.g., for BI and Analytics)
-
-Start PySpark (leave this terminal running)
-
-```shell
-./02-scripts/run-pyspark.sh
-```
-
-Open a browser to <http://localhost:4040/>  to monitor Spark jobs and execution details.
-
-In a second terminal, test Spark
-
-```shell
-python3 02-scripts/test-pyspark.py
-```
-
-Use that second terminal to stop the service when done:
-
-```shell
-pkill -f pyspark
-```
+Please review the [Contribution to Spark guide](https://spark.apache.org/contributing.html)
+for information on how to get started contributing to the project.
