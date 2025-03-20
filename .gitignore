@@ -36,3 +36,4 @@ __pycache__/
 # Downloaded artifacts
 jdk.tar.gz
 kafka.tgz
+01-setup/jdk/
